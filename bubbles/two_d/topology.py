@@ -153,22 +153,23 @@ class Topology(object):
             "boundaryCondition": periodic_boundary,
         }
 
-    def add_hole(self, hole, refs=60):
+    def add_hole(self, hole, refs=60, discretized_hole=None):
         # TODO: Missing corner case
         assert (
             isinstance(hole, Circle)
             or isinstance(hole, Ellipse)
             or isinstance(hole, Stellar)
         )
-        discretized_hole = hole.discretize_hole(refs)
+        if discretized_hole is None:
+            discretized_hole = hole.discretize_hole(refs)
 
         if self.__add_hole((discretized_hole, hole)):
             counter = len(self.topology_json) - 3
             self.topology_json["hole_" + str(counter)] = (hole.to_dict(), refs)
             print("Hole added")
-            return True
+            return True, discretized_hole
         print("Hole could not be added")
-        return False
+        return False, []
 
     def write_geo(self, file_name, filled=True, lc_in=0.2, lc_out=0.2):
         """writes a .geo file of the current topology"""
@@ -291,6 +292,7 @@ class Topology(object):
         # rect_id in {0,1,2,3...} 0 is rect_out, i > 0 is the ID of one rect_in
         bool__, intersection_loc, rect_id = self.__localize(hole)
 
+        status = True
         if bool__:
             if intersection_loc is None:
                 # ---------------NO INTERSECTIONS-------------------
@@ -304,16 +306,17 @@ class Topology(object):
 
             elif intersection_loc in {"left", "up", "right", "down"}:
                 # ----------------EDGE INTERSECTION ----------------
-                self.__add_hole_on_edge(
+                status = self.__add_hole_on_edge(
                     intersection_loc, rect_id, hole, convex_hull_hole
                 )
 
             else:
                 # ---------------CORNER INTERSECTION ------------------
-                self.__add_hole_on_corner(intersection_loc, rect_id, hole)
+                status = self.__add_hole_on_corner(intersection_loc, rect_id, hole)
 
-            self.all_holes_conv_hull.append(convex_hull_hole)
-            return True
+            if status:
+                self.all_holes_conv_hull.append(convex_hull_hole)
+            return status
         else:
             print(intersection_loc)
             return False
@@ -837,6 +840,7 @@ class Topology(object):
                 self.all_holes_conv_hull.append(convex_hull_reflected_hole)
         else:
             return False
+        return True
 
     def __add_hole_on_corner(self, intersection_loc, loc, hole):
         # TODO make it possible to choose how to compute intersection points
@@ -1073,6 +1077,7 @@ class Topology(object):
 
             else:
                 return False
+            return True
 
     def __add_hole_on_corner_in(self, hole, intersections, position, rect_id):
         x0_in = self.rects_in[rect_id]["x0"]

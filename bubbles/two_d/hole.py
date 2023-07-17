@@ -167,6 +167,10 @@ class Stellar(Hole):
         self.coefficient = coefficient
         self.f = trigonometric_function(self.coefficient, self.radius)
 
+    def update_radius(self, radius):
+        self.radius = radius
+        self.f = trigonometric_function(self.coefficient, self.radius)
+
     def to_dict(self):
         """Returns the hole information in dict format."""
         return {
