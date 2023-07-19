@@ -63,6 +63,9 @@ class Circle(Hole):
         """Returns the hole information in dict format."""
         return {"type": self.type, "midpoint": self.midpoint, "radius": self.radius}
 
+    def update_radius(self, radius):
+        self.radius = radius
+
     def discretize_hole(self, refs: int) -> list[tuple[float, float]]:
         """Discretize the boundary of the hole.
 

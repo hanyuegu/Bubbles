@@ -5,7 +5,6 @@ import random as rd
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import random
 import math
 import numpy as np
 
@@ -13,13 +12,13 @@ from bubbles.two_d.hole import Circle, Stellar
 from bubbles.two_d.topology import Topology
 
 # Safe .GEO files at DATA_DIR
-DATA_DIR = Path(__file__).parent.joinpath("data_stellar2")
+DATA_DIR = Path(__file__).parent.joinpath("data_circle")
 DATA_DIR.mkdir(exist_ok=True, parents=True)
 
 
-def StellarSampling(Inclusion_area_total, N):
+def CirlceSampling(Inclusion_area_total, N):
 
-    random.seed(N)
+    rd.seed(N)
 
     """Domain with four sub-rects and many stellar holes."""
     # Domain with many little stellar holes
@@ -49,8 +48,8 @@ def StellarSampling(Inclusion_area_total, N):
             print(i)
 
             midpoint_s = rd.uniform(0, width), rd.uniform(0, height)
-            radius = rd.uniform(0.01, 0.1)
-            stellar_hole = Stellar(midpoint_s, radius)
+            radius = rd.uniform(0.01, 0.5)
+            stellar_hole = Circle(midpoint_s, radius)
             discretized_hole = stellar_hole.discretize_hole(refs)
 
             if stellar_area_total + Polygon(discretized_hole).area > Inclusion_area_total:
@@ -65,6 +64,13 @@ def StellarSampling(Inclusion_area_total, N):
                 stellar_area_total += pgon.area
                 counter += 1
 
+                # Draw for debugging
+                # x = [p[0] for p in discretized_hole]
+                # y = [p[1] for p in discretized_hole]
+                # plt.scatter(x, y)
+                # plt.savefig("output.png")
+                print(i)
+
         remain_area = Inclusion_area_total - stellar_area_total
         scaling_ratio = np.sqrt(remain_area / Polygon(discretized_hole).area)
         radius = radius * scaling_ratio
@@ -78,7 +84,11 @@ def StellarSampling(Inclusion_area_total, N):
             Polygon_list.append(discretized_hole)
             stellar_area_total += pgon.area
             counter += 1
-
+            # x = [p[0] for p in discretized_hole]
+            # y = [p[1] for p in discretized_hole]
+            # plt.scatter(x, y)
+            # plt.savefig("output.png")
+            print(i)
             break
 
     print("Needed ", i, "runs for ", counter, "holes")
@@ -99,4 +109,4 @@ def StellarSampling(Inclusion_area_total, N):
     print("check_sum", check_sum)
 
 
-StellarSampling(1.4, 1)  # volumefraction == 0.25
+CirlceSampling(1.4, 1)  # volumefraction == 0.25
